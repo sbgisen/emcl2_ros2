@@ -11,6 +11,8 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/time.hpp>
+#include <rclcpp/timer.hpp>
+#include <nav2_util/lifecycle_node.hpp>
 
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
@@ -28,21 +30,34 @@
 
 namespace emcl2
 {
-class EMcl2Node : public rclcpp::Node
+class EMcl2Node : public nav2_util::LifecycleNode
 {
       public:
-	EMcl2Node();
+	EMcl2Node(const rclcpp::NodeOptions & options);
 	~EMcl2Node();
 
 	void loop(void);
 	int getOdomFreq(void);
 
+	rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_configure(
+	  const rclcpp_lifecycle::State &);
+	rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(
+	  const rclcpp_lifecycle::State &);
+	rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_deactivate(
+	  const rclcpp_lifecycle::State &);
+	rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_cleanup(
+	  const rclcpp_lifecycle::State &);
+	rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_shutdown(
+	  const rclcpp_lifecycle::State &);
+
       private:
 	std::shared_ptr<ExpResetMcl2> pf_;
 
-	rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr particlecloud_pub_;
-	rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pose_pub_;
-	rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr alpha_pub_;
+	rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseArray>::SharedPtr
+	  particlecloud_pub_;
+	rclcpp_lifecycle::LifecyclePublisher<
+	  geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pose_pub_;
+	rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float32>::SharedPtr alpha_pub_;
 	rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laser_scan_sub_;
 	rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
 	  initial_pose_sub_;
@@ -65,6 +80,7 @@ class EMcl2Node : public rclcpp::Node
 	tf2::Transform latest_tf_;
 
 	rclcpp::Clock ros_clock_;
+	rclcpp::TimerBase::SharedPtr timer_;
 
 	int odom_freq_;
 	bool init_pf_;
