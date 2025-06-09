@@ -30,7 +30,7 @@
 namespace emcl2
 {
 EMcl2Node::EMcl2Node(const rclcpp::NodeOptions & options)
-: Node("emcl2_node", options),
+: nav2_util::LifecycleNode("emcl2_node", "", options),
   ros_clock_(RCL_SYSTEM_TIME),
   init_pf_(false),
   init_request_(false),
@@ -38,12 +38,64 @@ EMcl2Node::EMcl2Node(const rclcpp::NodeOptions & options)
   scan_receive_(false),
   map_receive_(false)
 {
-	// declare ros parameters
-	declareParameter();
-	initCommunication();
+	this->register_on_configure(
+	  std::bind(&EMcl2Node::on_configure, this, std::placeholders::_1));
+	this->register_on_activate(std::bind(&EMcl2Node::on_activate, this, std::placeholders::_1));
+	this->register_on_deactivate(
+	  std::bind(&EMcl2Node::on_deactivate, this, std::placeholders::_1));
+	this->register_on_cleanup(std::bind(&EMcl2Node::on_cleanup, this, std::placeholders::_1));
+	this->register_on_shutdown(std::bind(&EMcl2Node::on_shutdown, this, std::placeholders::_1));
 }
 
 EMcl2Node::~EMcl2Node() {}
+
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn EMcl2Node::on_configure(
+  const rclcpp_lifecycle::State &)
+{
+	declareParameter();
+	initCommunication();
+
+	return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+}
+
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+EMcl2Node::on_activate(const rclcpp_lifecycle::State &)
+{
+	particlecloud_pub_->on_activate();
+	pose_pub_->on_activate();
+	alpha_pub_->on_activate();
+
+	timer_ = create_wall_timer(
+	  std::chrono::milliseconds(static_cast<int>(1000.0 / odom_freq_)),
+	  std::bind(&EMcl2Node::loop, this));
+
+	createBond();
+
+	return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+}
+
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+EMcl2Node::on_deactivate(const rclcpp_lifecycle::State &)
+{
+	timer_->cancel();
+	particlecloud_pub_->on_deactivate();
+	pose_pub_->on_deactivate();
+	alpha_pub_->on_deactivate();
+
+	return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+}
+
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn EMcl2Node::on_cleanup(
+  const rclcpp_lifecycle::State &)
+{
+	return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+}
+
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn EMcl2Node::on_shutdown(
+  const rclcpp_lifecycle::State &)
+{
+	return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+}
 
 void EMcl2Node::declareParameter()
 {
@@ -106,9 +158,6 @@ void EMcl2Node::initCommunication(void)
 	this->get_parameter("odom_freq", odom_freq_);
 
 	this->get_parameter("transform_tolerance", transform_tolerance_);
-	timer_ = create_wall_timer(
-	  std::chrono::milliseconds(static_cast<int>(1000.0 / odom_freq_)),
-	  std::bind(&EMcl2Node::loop, this));
 }
 
 void EMcl2Node::initTF(void)
@@ -421,7 +470,9 @@ int main(int argc, char ** argv)
 	rclcpp::init(argc, argv);
 	auto options = rclcpp::NodeOptions();
 	auto node = std::make_shared<emcl2::EMcl2Node>(options);
-	rclcpp::spin(node);
+	rclcpp::executors::SingleThreadedExecutor executor;
+	executor.add_node(node->get_node_base_interface());
+	executor.spin();
 	rclcpp::shutdown();
 	return 0;
 }
