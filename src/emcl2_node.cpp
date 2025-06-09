@@ -29,8 +29,8 @@
 
 namespace emcl2
 {
-EMcl2Node::EMcl2Node()
-: Node("emcl2_node"),
+EMcl2Node::EMcl2Node(const rclcpp::NodeOptions & options)
+: Node("emcl2_node", options),
   ros_clock_(RCL_SYSTEM_TIME),
   init_pf_(false),
   init_request_(false),
@@ -106,6 +106,9 @@ void EMcl2Node::initCommunication(void)
 	this->get_parameter("odom_freq", odom_freq_);
 
 	this->get_parameter("transform_tolerance", transform_tolerance_);
+	timer_ = create_wall_timer(
+	  std::chrono::milliseconds(static_cast<int>(1000.0 / odom_freq_)),
+	  std::bind(&EMcl2Node::loop, this));
 }
 
 void EMcl2Node::initTF(void)
@@ -416,13 +419,12 @@ bool EMcl2Node::cbSimpleReset(
 int main(int argc, char ** argv)
 {
 	rclcpp::init(argc, argv);
-	auto node = std::make_shared<emcl2::EMcl2Node>();
-	rclcpp::Rate loop_rate(node->getOdomFreq());
-	while (rclcpp::ok()) {
-		node->loop();
-		rclcpp::spin_some(node);
-		loop_rate.sleep();
-	}
+	auto options = rclcpp::NodeOptions();
+	auto node = std::make_shared<emcl2::EMcl2Node>(options);
+	rclcpp::spin(node);
 	rclcpp::shutdown();
 	return 0;
 }
+
+#include <rclcpp_components/register_node_macro.hpp>
+RCLCPP_COMPONENTS_REGISTER_NODE(emcl2::EMcl2Node)

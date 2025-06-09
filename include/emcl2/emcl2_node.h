@@ -11,6 +11,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/time.hpp>
+#include <rclcpp/timer.hpp>
 
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
@@ -31,7 +32,7 @@ namespace emcl2
 class EMcl2Node : public rclcpp::Node
 {
       public:
-	EMcl2Node();
+	EMcl2Node(const rclcpp::NodeOptions & options);
 	~EMcl2Node();
 
 	void loop(void);
@@ -65,6 +66,7 @@ class EMcl2Node : public rclcpp::Node
 	tf2::Transform latest_tf_;
 
 	rclcpp::Clock ros_clock_;
+	rclcpp::TimerBase::SharedPtr timer_;
 
 	int odom_freq_;
 	bool init_pf_;
