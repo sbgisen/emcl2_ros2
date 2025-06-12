@@ -233,10 +233,12 @@ std::shared_ptr<LikelihoodFieldMap> EMcl2Node::initMap(void)
 void EMcl2Node::receiveMap(const nav_msgs::msg::OccupancyGrid::ConstSharedPtr msg)
 {
 	map_ = *msg;
-	map_receive_ = true;
 	RCLCPP_INFO(get_logger(), "Received map.");
-	initPF();
-	initTF();
+	if (!map_receive_) {
+		map_receive_ = true;
+		initPF();
+		initTF();
+	}
 }
 
 void EMcl2Node::cbScan(const sensor_msgs::msg::LaserScan::ConstSharedPtr msg)
