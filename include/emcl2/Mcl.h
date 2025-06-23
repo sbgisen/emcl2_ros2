@@ -41,6 +41,7 @@ class Mcl
 	  double & t_var, double & xy_cov, double & yt_cov, double & tx_cov);
 
 	void simpleReset(void);
+	void resetWeight(void);
 
 	static double cos_[(1 << 16)];
 	static double sin_[(1 << 16)];
@@ -55,7 +56,6 @@ class Mcl
 	double normalizeAngle(double t);
 	void resampling(void);
 	double normalizeBelief(void);
-	void resetWeight(void);
 
 	std::shared_ptr<OdomModel> odom_model_;
 	std::shared_ptr<LikelihoodFieldMap> map_;

@@ -239,6 +239,9 @@ void EMcl2Node::receiveMap(const nav_msgs::msg::OccupancyGrid::ConstSharedPtr ms
 		initPF();
 		initTF();
 	}
+    else {
+		pf_->resetWeight();
+    }
 }
 
 void EMcl2Node::cbScan(const sensor_msgs::msg::LaserScan::ConstSharedPtr msg)
