@@ -240,8 +240,8 @@ void EMcl2Node::receiveMap(const nav_msgs::msg::OccupancyGrid::ConstSharedPtr ms
 		initTF();
 	}
     else {
-		initPF();
-		pf_->initialize(current_x_, current_y_, current_t_);
+		pf_->setMap(initMap());
+		RCLCPP_INFO(get_logger(), "Updated map.");
     }
 }
 
