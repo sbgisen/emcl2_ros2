@@ -319,9 +319,6 @@ void EMcl2Node::loop(void)
 		publishOdomFrame(x, y, t);
 		publishPose(x, y, t, x_var, y_var, t_var, xy_cov, yt_cov, tx_cov);
 		publishParticles();
-		current_x_ = x;
-		current_y_ = y;
-		current_t_ = t;
 
 		std_msgs::msg::Float32 alpha_msg;
 		alpha_msg.data = static_cast<float>(pf_->alpha_);

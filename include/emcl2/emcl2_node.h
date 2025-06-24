@@ -91,7 +91,6 @@ class EMcl2Node : public nav2_util::LifecycleNode
 	bool map_receive_;
 	double init_x_, init_y_, init_t_;
 	double transform_tolerance_;
-	double current_x_, current_y_, current_t_;
 
 	void publishPose(
 	  double x, double y, double t, double x_dev, double y_dev, double t_dev, double xy_cov,
