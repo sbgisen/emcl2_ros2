@@ -239,6 +239,10 @@ void EMcl2Node::receiveMap(const nav_msgs::msg::OccupancyGrid::ConstSharedPtr ms
 		initPF();
 		initTF();
 	}
+    else {
+		pf_->setMap(initMap());
+		RCLCPP_INFO(get_logger(), "Updated map.");
+    }
 }
 
 void EMcl2Node::cbScan(const sensor_msgs::msg::LaserScan::ConstSharedPtr msg)

@@ -282,4 +282,9 @@ void Mcl::simpleReset(void)
 double Mcl::cos_[(1 << 16)];
 double Mcl::sin_[(1 << 16)];
 
+void Mcl::setMap(const std::shared_ptr<LikelihoodFieldMap> & map)
+{
+	map_ = move(map);
+	resetWeight();
+}
 }  // namespace emcl2
